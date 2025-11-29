@@ -5,6 +5,7 @@
 #include "memlayout.h"
 #include "spinlock.h"
 #include "proc.h"
+#include "sysinfo.h"
 
 uint64
 sys_exit(void)
@@ -90,4 +91,26 @@ sys_uptime(void)
   xticks = ticks;
   release(&tickslock);
   return xticks;
+}
+
+uint64
+sys_sysinfo(void)
+{
+  struct sysinfo info; // Tạo struct trong kernel stack
+  uint64 addr; // Địa chỉ con trỏ user truyền vào
+
+  // Lấy tham số đầu tiên (địa chỉ struct sysinfo từ user)
+  if(argaddr(0, &addr) < 0)
+    return -1;
+
+  // Gọi 2 hàm helper đã viết ở Bước 1
+  info.freemem = kcollect_free();
+  info.nproc = pcollect_active();
+
+  // Copy struct info từ kernel ra địa chỉ addr của user
+  // copyout(pagetable, dst_va, src_pa, len)
+  if(copyout(myproc()->pagetable, addr, (char *)&info, sizeof(info)) < 0)
+    return -1;
+
+  return 0; // Trả về 0 nghĩa là thành công
 }

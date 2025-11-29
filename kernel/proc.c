@@ -693,3 +693,18 @@ procdump(void)
     printf("\n");
   }
 }
+
+uint64
+pcollect_active(void)
+{
+  struct proc *p;
+  uint64 count = 0;
+  
+  // Duyệt qua toàn bộ bảng process
+  for(p = proc; p < &proc[NPROC]; p++){
+    if(p->state != UNUSED) {
+      count++;
+    }
+  }
+  return count;
+}
