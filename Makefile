@@ -1,4 +1,3 @@
-
 # To compile and run with a lab solution, set the lab name in conf/lab.mk
 # (e.g., LAB=util).  Run make grade to test solution with the lab's
 # grade script (e.g., grade-lab-util).
@@ -41,21 +40,21 @@ OBJS_KCSAN = \
 
 ifdef KCSAN
 OBJS_KCSAN += \
-	$K/kcsan.o
+    $K/kcsan.o
 endif
 
 ifeq ($(LAB),lock)
 OBJS += \
-	$K/stats.o\
-	$K/sprintf.o
+    $K/stats.o\
+    $K/sprintf.o
 endif
 
 
 ifeq ($(LAB),net)
 OBJS += \
-	$K/e1000.o \
-	$K/net.o \
-	$K/pci.o
+    $K/e1000.o \
+    $K/net.o \
+    $K/pci.o
 endif
 
 
@@ -66,15 +65,15 @@ endif
 # Try to infer the correct TOOLPREFIX if not set
 ifndef TOOLPREFIX
 TOOLPREFIX := $(shell if riscv64-unknown-elf-objdump -i 2>&1 | grep 'elf64-big' >/dev/null 2>&1; \
-	then echo 'riscv64-unknown-elf-'; \
-	elif riscv64-linux-gnu-objdump -i 2>&1 | grep 'elf64-big' >/dev/null 2>&1; \
-	then echo 'riscv64-linux-gnu-'; \
-	elif riscv64-unknown-linux-gnu-objdump -i 2>&1 | grep 'elf64-big' >/dev/null 2>&1; \
-	then echo 'riscv64-unknown-linux-gnu-'; \
-	else echo "***" 1>&2; \
-	echo "*** Error: Couldn't find a riscv64 version of GCC/binutils." 1>&2; \
-	echo "*** To turn off this error, run 'gmake TOOLPREFIX= ...'." 1>&2; \
-	echo "***" 1>&2; exit 1; fi)
+    then echo 'riscv64-unknown-elf-'; \
+    elif riscv64-linux-gnu-objdump -i 2>&1 | grep 'elf64-big' >/dev/null 2>&1; \
+    then echo 'riscv64-linux-gnu-'; \
+    elif riscv64-unknown-linux-gnu-objdump -i 2>&1 | grep 'elf64-big' >/dev/null 2>&1; \
+    then echo 'riscv64-unknown-linux-gnu-'; \
+    else echo "***" 1>&2; \
+    echo "*** Error: Couldn't find a riscv64 version of GCC/binutils." 1>&2; \
+    echo "*** To turn off this error, run 'gmake TOOLPREFIX= ...'." 1>&2; \
+    echo "***" 1>&2; exit 1; fi)
 endif
 
 QEMU = qemu-system-riscv64
@@ -199,9 +198,7 @@ UPROGS=\
 	$U/_primes\
 	$U/_find\
 	$U/_sysinfotest\
-
-
-
+	$U/_trace\
 
 ifeq ($(LAB),syscall)
 UPROGS += \
@@ -347,7 +344,7 @@ print-gdbport:
 grade:
 	@echo $(MAKE) clean
 	@$(MAKE) clean || \
-          (echo "'make clean' failed.  HINT: Do you have another running instance of xv6?" && exit 1)
+	      (echo "'make clean' failed.  HINT: Do you have another running instance of xv6?" && exit 1)
 	./grade-lab-$(LAB) $(GRADEFLAGS)
 
 ##

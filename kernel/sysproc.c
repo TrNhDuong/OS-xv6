@@ -112,5 +112,15 @@ sys_sysinfo(void)
   if(copyout(myproc()->pagetable, addr, (char *)&info, sizeof(info)) < 0)
     return -1;
 
-  return 0; // Trả về 0 nghĩa là thành công
+  return 0; 
+}
+// Trả về 0 nghĩa là thành công
+uint64
+sys_trace(void)
+{
+  int n;
+  if(argint(0, &n) < 0)
+    return -1;
+  myproc()->trace_mask = n;
+  return 0;
 }
