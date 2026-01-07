@@ -45,3 +45,4 @@ void* malloc(uint);
 void free(void*);
 int sysinfo(struct sysinfo *);
 int ugetpid(void);
+int pgaccess(void*, int, void*);

@@ -124,3 +124,47 @@ sys_trace(void)
   myproc()->trace_mask = n;
   return 0;
 }
+
+uint64
+sys_pgaccess(void)
+{
+  uint64 va;        // user virtual address (can be unaligned)
+  int npages;
+  uint64 u_mask;    // user address to store result mask
+
+  if (argaddr(0, &va) < 0)
+    return -1;
+  if (argint(1, &npages) < 0)
+    return -1;
+  if (argaddr(2, &u_mask) < 0)
+    return -1;
+
+  if (npages < 0 || npages > 64)
+    return -1;
+
+  struct proc *p = myproc();
+  uint64 mask = 0;
+
+  // 🔑 QUAN TRỌNG: page-align địa chỉ bắt đầu
+  uint64 base = PGROUNDDOWN(va);
+
+  for (int i = 0; i < npages; i++) {
+    uint64 curr_va = base + i * PGSIZE;
+
+    pte_t *pte = walk(p->pagetable, curr_va, 0);
+    if (pte == 0)
+      continue;
+
+    if ((*pte & PTE_V) && (*pte & PTE_A)) {
+      mask |= (1ULL << i);
+      *pte &= ~PTE_A;   // clear accessed bit
+    }
+  }
+
+  if (copyout(p->pagetable, u_mask, (char *)&mask, sizeof(mask)) < 0)
+    return -1;
+
+  return 0;
+}
+
+

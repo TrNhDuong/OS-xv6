@@ -200,7 +200,8 @@ UPROGS=\
 	$U/_sysinfotest\
 	$U/_trace\
 	$U/_test_usyscall\
-
+	$U/_test_pgaccess\
+	
 ifeq ($(LAB),syscall)
 UPROGS += \
 	$U/_attack\
