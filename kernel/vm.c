@@ -502,3 +502,30 @@ pgpte(pagetable_t pagetable, uint64 va) {
   return walk(pagetable, va, 0);
 }
 #endif
+
+static void
+vmprint_walk(pagetable_t pagetable, int level)
+{
+  for(int i = 0; i < 512; i++){
+    pte_t pte = pagetable[i];
+    if(pte & PTE_V){   // only valid entries
+      for(int j = 0; j < level; j++)
+        printf(" ..");
+
+      uint64 pa = PTE2PA(pte);
+      printf("%d: pte 0x%016lx pa 0x%016lx\n", i, pte, pa);
+
+      if((pte & (PTE_R | PTE_W | PTE_X)) == 0){
+        vmprint_walk((pagetable_t)pa, level + 1);
+      }
+    }
+  }
+}
+
+
+void
+vmprint(pagetable_t pagetable)
+{
+  printf("page table %p\n", pagetable);
+  vmprint_walk(pagetable, 0);
+}
