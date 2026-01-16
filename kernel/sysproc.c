@@ -124,3 +124,51 @@ sys_trace(void)
   myproc()->trace_mask = n;
   return 0;
 }
+
+int
+sys_pgaccess(void)
+{
+  uint64 base;
+  int len;
+  uint64 mask_addr; // Địa chỉ buffer user
+  struct proc *p = myproc();
+  
+  // Biến lưu kết quả tạm trong kernel (64 bits theo hướng dẫn)
+  uint64 bitmask = 0; 
+
+  // 1. Lấy 3 tham số: base, len, mask_addr
+  if(argaddr(0, &base) < 0 || argint(1, &len) < 0 || argaddr(2, &mask_addr) < 0)
+    return -1;
+
+  // Giới hạn max 64 trang (vì bitmask là uint64)
+  if(len > 64 || len < 0)
+    return -1;
+
+  // 2. Duyệt qua từng page
+  for(int i = 0; i < len; i++){
+    uint64 va = base + i * PGSIZE;
+    
+    // Tìm PTE bằng hàm walk
+    pte_t *pte = walk(p->pagetable, va, 0);
+
+    // Kiểm tra Valid và Access Bit
+    if(pte &&
+      (*pte & PTE_V) &&
+      (*pte & PTE_U) &&  
+      (*pte & PTE_A)){
+        
+      // Set bit tương ứng trong bitmask
+      bitmask |= (1L << i);
+
+      // Clear bit A (quan trọng để detect lần sau)
+      *pte &= ~PTE_A; 
+    }
+  }
+
+  // 3. Copy kết quả về user space
+  // Lưu ý: Copy đúng 8 bytes (sizeof uint64)
+  if(copyout(p->pagetable, mask_addr, (char *)&bitmask, sizeof(bitmask)) < 0)
+    return -1;
+
+  return 0;
+}
