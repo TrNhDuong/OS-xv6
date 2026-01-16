@@ -199,8 +199,8 @@ UPROGS=\
 	$U/_find\
 	$U/_sysinfotest\
 	$U/_trace\
-	$U/_test_usyscall\
 	$U/_test_pgaccess\
+	$U/_pgtbltest\
 	
 ifeq ($(LAB),syscall)
 UPROGS += \
