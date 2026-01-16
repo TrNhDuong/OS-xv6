@@ -378,7 +378,6 @@ typedef uint64 *pagetable_t; // 512 PTEs
 #define PTE_A (1L << 6)
 
 
-
 #if defined(LAB_MMAP) || defined(LAB_PGTBL)
 #define PTE_LEAF(pte) (((pte) & PTE_R) | ((pte) & PTE_W) | ((pte) & PTE_X))
 #endif

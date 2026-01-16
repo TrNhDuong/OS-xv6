@@ -125,50 +125,46 @@ sys_trace(void)
   return 0;
 }
 
-int
+uint64
 sys_pgaccess(void)
 {
-  uint64 base;
-  int len;
-  uint64 mask_addr; // Địa chỉ buffer user
+  uint64 va;        // user virtual address (can be unaligned)
+  int npages;
+  uint64 u_mask;    // user address to store result mask
+
+  if (argaddr(0, &va) < 0)
+    return -1;
+  if (argint(1, &npages) < 0)
+    return -1;
+  if (argaddr(2, &u_mask) < 0)
+    return -1;
+
+  if (npages < 0 || npages > 64)
+    return -1;
+
   struct proc *p = myproc();
-  
-  // Biến lưu kết quả tạm trong kernel (64 bits theo hướng dẫn)
-  uint64 bitmask = 0; 
+  uint64 mask = 0;
 
-  // 1. Lấy 3 tham số: base, len, mask_addr
-  if(argaddr(0, &base) < 0 || argint(1, &len) < 0 || argaddr(2, &mask_addr) < 0)
-    return -1;
+  // 🔑 QUAN TRỌNG: page-align địa chỉ bắt đầu
+  uint64 base = PGROUNDDOWN(va);
 
-  // Giới hạn max 64 trang (vì bitmask là uint64)
-  if(len > 64 || len < 0)
-    return -1;
+  for (int i = 0; i < npages; i++) {
+    uint64 curr_va = base + i * PGSIZE;
 
-  // 2. Duyệt qua từng page
-  for(int i = 0; i < len; i++){
-    uint64 va = base + i * PGSIZE;
-    
-    // Tìm PTE bằng hàm walk
-    pte_t *pte = walk(p->pagetable, va, 0);
+    pte_t *pte = walk(p->pagetable, curr_va, 0);
+    if (pte == 0)
+      continue;
 
-    // Kiểm tra Valid và Access Bit
-    if(pte &&
-      (*pte & PTE_V) &&
-      (*pte & PTE_U) &&  
-      (*pte & PTE_A)){
-        
-      // Set bit tương ứng trong bitmask
-      bitmask |= (1L << i);
-
-      // Clear bit A (quan trọng để detect lần sau)
-      *pte &= ~PTE_A; 
+    if ((*pte & PTE_V) && (*pte & PTE_A)) {
+      mask |= (1ULL << i);
+      *pte &= ~PTE_A;   // clear accessed bit
     }
   }
 
-  // 3. Copy kết quả về user space
-  // Lưu ý: Copy đúng 8 bytes (sizeof uint64)
-  if(copyout(p->pagetable, mask_addr, (char *)&bitmask, sizeof(bitmask)) < 0)
+  if (copyout(p->pagetable, u_mask, (char *)&mask, sizeof(mask)) < 0)
     return -1;
 
   return 0;
 }
+
+
