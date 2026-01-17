@@ -486,6 +486,16 @@ copyinstr(pagetable_t pagetable, char *dst, uint64 srcva, uint64 max)
   }
 }
 
+
+#ifdef LAB_PGTBL
+void
+vmprint(pagetable_t pagetable) {
+  // your code here
+}
+#endif
+
+
+
 #ifdef LAB_PGTBL
 pte_t*
 pgpte(pagetable_t pagetable, uint64 va) {
@@ -493,18 +503,22 @@ pgpte(pagetable_t pagetable, uint64 va) {
 }
 #endif
 
-static void
+void
 vmprint_walk(pagetable_t pagetable, int level)
 {
   for(int i = 0; i < 512; i++){
     pte_t pte = pagetable[i];
-    if(pte & PTE_V){   // only valid entries
+
+    if(pte & PTE_V){
+      // in indent
       for(int j = 0; j < level; j++)
-        printf(" ..");
+        printf(".. ");
 
       uint64 pa = PTE2PA(pte);
-      printf("%d: pte 0x%016lx pa 0x%016lx\n", i, pte, pa);
+      printf("%d: pte %p pa %p\n", i, (void *)pte, (void *)pa);
 
+
+      // nếu không phải leaf → đi tiếp
       if((pte & (PTE_R | PTE_W | PTE_X)) == 0){
         vmprint_walk((pagetable_t)pa, level + 1);
       }
@@ -512,10 +526,9 @@ vmprint_walk(pagetable_t pagetable, int level)
   }
 }
 
-
 void
 vmprint(pagetable_t pagetable)
 {
-  printf("page table %p\n", pagetable);
-  vmprint_walk(pagetable, 0);
+  printf("page table %p\n", (void *)pagetable);
+  vmprint_walk(pagetable, 1);
 }
