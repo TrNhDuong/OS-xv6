@@ -508,7 +508,7 @@ vmprint_walk(pagetable_t pagetable, int level)
 {
   for(int i = 0; i < 512; i++){
     pte_t pte = pagetable[i];
-    if(pte & PTE_V){   // only valid entries
+    if(pte & PTE_V){   
       for(int j = 0; j < level; j++)
         printf(" ..");
 
